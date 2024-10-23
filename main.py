@@ -47,6 +47,10 @@ class RateMovieForm(FlaskForm):
     submit = SubmitField("Done")
 
 
+class AddMovieForm(FlaskForm):
+    movie_name = StringField("Movie name")
+
+
 @app.route("/")
 def home():
     # READ ALL MOVIES
@@ -54,6 +58,16 @@ def home():
     all_movies = result.scalars().all()
     return render_template("index.html", movies=all_movies)
 
+@app.route("/add", methods=["GET", "POST"])
+def add():
+    form = AddMovieForm()
+    # movie_id = request.args.get("id")
+    # movie = db.get_or_404(Movie, movie_id)
+    if form.validate_on_submit():
+        # movie.name = form.movie_name.data
+        # db.session.commit()
+        return redirect(url_for('home'))
+    return render_template("add.html", form=form)
 
 @app.route("/edit", methods=["GET", "POST"])
 def edit():
