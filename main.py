@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String, Float
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
-import requests
+import requests, json
 
 
 app = Flask(__name__)
@@ -48,7 +48,8 @@ class RateMovieForm(FlaskForm):
 
 
 class AddMovieForm(FlaskForm):
-    movie_name = StringField("Movie name")
+    movie_name = StringField("Movie name", validators=[DataRequired()])
+    submit = SubmitField("Add Movie")
 
 
 @app.route("/")
@@ -61,13 +62,31 @@ def home():
 @app.route("/add", methods=["GET", "POST"])
 def add():
     form = AddMovieForm()
-    # movie_id = request.args.get("id")
-    # movie = db.get_or_404(Movie, movie_id)
     if form.validate_on_submit():
-        # movie.name = form.movie_name.data
-        # db.session.commit()
-        return redirect(url_for('home'))
-    return render_template("add.html", form=form)
+        movie_to_search = form.movie_name.data
+        print(movie_to_search)
+        url = "https://api.themoviedb.org/3/search/movie?query=Superman&include_adult=false&language=en-US&page=1"
+        headers = {
+            "accept": "application/json",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYzFmNmViMzNiYjA0ZGFhNTE2ZjdlNThhYjI2NzI0NSIsIm5iZiI6MTcyOTc1OTEzNi44MzY2MzgsInN1YiI6IjY3MDRmZjUzNWFlMDFkMDkwZTFkNDRjMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.ljYS6iTtVXYTPuQvk0pVtBW3Cz54-Gdj_KNTsLfCAes"
+        }
+        parameters = {
+            "query": movie_to_search
+        }
+        response = requests.get(url, headers=headers, params=parameters)
+        print(response.text)
+
+        data = response.json()
+        movie_list = {title for (title) in data.items()}
+        print (movie_list)
+
+    else:
+        return render_template("add.html", form=form)
+
+
+
+
+
 
 @app.route("/edit", methods=["GET", "POST"])
 def edit():
