@@ -64,7 +64,6 @@ def add():
     form = AddMovieForm()
     if form.validate_on_submit():
         movie_to_search = form.movie_name.data
-        print(movie_to_search)
         url = "https://api.themoviedb.org/3/search/movie?query=Superman&include_adult=false&language=en-US&page=1"
         headers = {
             "accept": "application/json",
@@ -74,18 +73,34 @@ def add():
             "query": movie_to_search
         }
         response = requests.get(url, headers=headers, params=parameters)
-        print(response.text)
-
         data = response.json()
-        movie_list = {title for (title) in data.items()}
-        print (movie_list)
+        movie_list = data["results"]
+        movie_data = []
+        for movie in movie_list:
+            title = movie["title"]
+            date = movie["release_date"]
+            id = movie["id"]
+            new_movie=(title, date, id)
+            movie_data.append(new_movie)
+        print (movie_data)
+        return render_template("select.html", movies=movie_data)
 
-    else:
-        return render_template("add.html", form=form)
+    return render_template("add.html", form=form)
 
-
-
-
+@app.route("/append_movie", methods=["GET", "POST"])
+def append_movie():
+    url = "https://api.themoviedb.org/3/movie/603?language=en-US"
+    headers = {
+        "accept": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYzFmNmViMzNiYjA0ZGFhNTE2ZjdlNThhYjI2NzI0NSIsIm5iZiI6MTczMDAzMDEzMS43MDc0NTUsInN1YiI6IjY3MDRmZjUzNWFlMDFkMDkwZTFkNDRjMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rQWb72vnH5aQCJ8UNXkl0qkONtq0Gb4o1EEaoeZhFhM"
+    }
+    parameters = {
+        "movie_id": id
+    }
+    response = requests.get(url, headers=headers, params=parameters)
+    data = response.json()
+    print (data)
+    return redirect(url_for('home'))
 
 
 @app.route("/edit", methods=["GET", "POST"])
