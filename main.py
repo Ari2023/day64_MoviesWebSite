@@ -79,27 +79,31 @@ def add():
         for movie in movie_list:
             title = movie["title"]
             date = movie["release_date"]
-            id = movie["id"]
-            new_movie=(title, date, id)
+            m_id = movie["id"]
+            new_movie = (title, date, m_id)
             movie_data.append(new_movie)
-        print (movie_data)
         return render_template("select.html", movies=movie_data)
 
     return render_template("add.html", form=form)
 
-@app.route("/append_movie", methods=["GET", "POST"])
+
+@app.route("/append_movie")
 def append_movie():
-    url = "https://api.themoviedb.org/3/movie/603?language=en-US"
-    headers = {
-        "accept": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYzFmNmViMzNiYjA0ZGFhNTE2ZjdlNThhYjI2NzI0NSIsIm5iZiI6MTczMDAzMDEzMS43MDc0NTUsInN1YiI6IjY3MDRmZjUzNWFlMDFkMDkwZTFkNDRjMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rQWb72vnH5aQCJ8UNXkl0qkONtq0Gb4o1EEaoeZhFhM"
-    }
-    parameters = {
-        "movie_id": id
-    }
-    response = requests.get(url, headers=headers, params=parameters)
-    data = response.json()
-    print (data)
+    movie_api_id = request.args.get("id_m")
+    if movie_api_id:
+        url = f"https://api.themoviedb.org/3/movie/{movie_api_id}"
+        headers = {
+            "accept": "application/json",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYzFmNmViMzNiYjA0ZGFhNTE2ZjdlNThhYjI"
+                             "2NzI0NSIsIm5iZiI6MTczMDAzMDEzMS43MDc0NTUsInN1YiI6IjY3MDRmZjUzNWFlMDFkMDkwZTF"
+                             "kNDRjMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rQWb72vnH5aQCJ8UNXkl0"
+                             "qkONtq0Gb4o1EEaoeZhFhM"
+        }
+
+        response = requests.get(url, headers=headers)
+        data = response.json()
+        print ("APPEND")
+        print (data)
     return redirect(url_for('home'))
 
 
