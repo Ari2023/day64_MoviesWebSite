@@ -31,9 +31,9 @@ class Movie(db.Model):
     title: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     year: Mapped[int] = mapped_column(Integer)
     description: Mapped[str] = mapped_column(String(250), nullable=False)
-    rating: Mapped[int] = mapped_column(Integer, nullable=False)
-    ranking: Mapped[int] = mapped_column(Integer, nullable=False)
-    review: Mapped[str] = mapped_column(String(250), nullable=False)
+    rating: Mapped[int] = mapped_column(Integer)
+    ranking: Mapped[int] = mapped_column(Integer)
+    review: Mapped[str] = mapped_column(String(250))
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
 
 # CREATE TABLE SCHEMA IN THE DATABASE
@@ -104,7 +104,26 @@ def append_movie():
         data = response.json()
         print ("APPEND")
         print (data)
-    return redirect(url_for('home'))
+        title = data["original_title"]
+        img_url = f"https://image.tmdb.org/t/p/w500{data['poster_path']}"
+        year = data["release_date"]
+        description = data["overview"]
+        print(title)
+        print(img_url)
+        print(year)
+        print(description)
+
+        with app.app_context():
+            new_movie = Movie(title=title,
+                              description=description,
+                              year=year,
+                              img_url=img_url,
+                              rating=0,
+                              ranking=0,
+                              review="")
+            db.session.add(new_movie)
+            db.session.commit()
+    return redirect(url_for('edit'))
 
 
 @app.route("/edit", methods=["GET", "POST"])
@@ -115,8 +134,12 @@ def edit():
     if form.validate_on_submit():
         movie.rating = float(form.rating.data)
         movie.review = form.review.data
-        db.session.commit()
-        return redirect(url_for('home'))
+        with app.app_context():
+            movie_to_update = db.session.execute(db.select(Movie).where(Movie.id==movie_id)).scalar()
+            movie_to_update.rating = movie.rating
+            movie_to_update.review = movie.review
+            db.session.commit()
+            return redirect(url_for('home'))
     return render_template("edit.html", movie=movie, form=form)
 
 @app.route("/delete", methods=["GET", "POST"])
