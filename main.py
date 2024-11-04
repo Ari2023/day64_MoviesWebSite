@@ -102,18 +102,13 @@ def append_movie():
 
         response = requests.get(url, headers=headers)
         data = response.json()
-        print ("APPEND")
-        print (data)
+
         title = data["original_title"]
         img_url = f"https://image.tmdb.org/t/p/w500{data['poster_path']}"
         year = data["release_date"]
         description = data["overview"]
-        print(title)
-        print(img_url)
-        print(year)
-        print(description)
 
-        with app.app_context():
+        with (app.app_context()):
             new_movie = Movie(title=title,
                               description=description,
                               year=year,
@@ -123,7 +118,7 @@ def append_movie():
                               review="")
             db.session.add(new_movie)
             db.session.commit()
-    return redirect(url_for('edit'))
+            return redirect(url_for('edit', id=new_movie.id))
 
 
 @app.route("/edit", methods=["GET", "POST"])
@@ -131,16 +126,14 @@ def edit():
     form = RateMovieForm()
     movie_id = request.args.get("id")
     movie = db.get_or_404(Movie, movie_id)
+
     if form.validate_on_submit():
         movie.rating = float(form.rating.data)
         movie.review = form.review.data
-        with app.app_context():
-            movie_to_update = db.session.execute(db.select(Movie).where(Movie.id==movie_id)).scalar()
-            movie_to_update.rating = movie.rating
-            movie_to_update.review = movie.review
-            db.session.commit()
-            return redirect(url_for('home'))
+        db.session.commit()
+        return redirect(url_for('home'))
     return render_template("edit.html", movie=movie, form=form)
+
 
 @app.route("/delete", methods=["GET", "POST"])
 def delete():
@@ -150,6 +143,7 @@ def delete():
     db.session.delete(movie_to_delete)
     db.session.commit()
     return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
